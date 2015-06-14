@@ -7,7 +7,9 @@
 	require_once 'Session.class.php';
 
 
-	$dsn = ['server' => "SP2014P01SN",
+	//$dsn = ['server' => "SP2014P01SN",
+	//		'options' => ["Database" => "GPS"]];
+	$dsn = ['server' => "WIN-01D44SNDUFQ",
 			'options' => ["Database" => "GPS"]];
 
 	$db = new DB\SQLServerDriver($dsn);
@@ -42,7 +44,7 @@
 	<script src="assets/js/jquery-2.1.4.js"></script>
 	<script src="assets/js/moment.js"></script>
 	<script src="assets/js/bootstrap.min.js"></script>
-	<script src="assets/js/bootstrap.datetimepicker.min.js"></script>
+	<!-- <script src="assets/js/bootstrap.datetimepicker.min.js"></script> -->
 	<script src="assets/highcharts/js/highcharts.js"></script>
 
 	<script>
@@ -92,6 +94,7 @@
 
 			<div class="collapse navbar-collapse" id="bs-navbar-collapse-1">
 			<ul class="nav navbar-nav navbar-right">
+				<li><a href="presentation.php"><span class="glyphicon glyphicon-facetime-video"></span></a></li>
 				<li class="dropdown">
 					<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button">
 						<?= $_SESSION['userDisplayName']; ?>

@@ -20,8 +20,7 @@
 		</div>
 		<div class="panel-body">
 			<?php
-				$db->query("SELECT SUM(AlarmCount) as NumAlarms FROM almTag");
-	
+				$db->query("SELECT SUM(AlarmCount) as NumAlarms FROM almTag");	
 				$row = $db->fetch();
 				echo '<h1>' . $row['NumAlarms'] . '</h1>';
 				$db->freeStmt();
