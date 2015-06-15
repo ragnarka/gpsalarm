@@ -20,7 +20,18 @@
 		</div>
 		<div class="panel-body">
 			<?php
-				$db->query("SELECT SUM(AlarmCount) as NumAlarms FROM almTag");	
+				$filter = '';
+				if (isset($_GET['f'])) {
+					$startDate 	= (isset($_GET['sd'])) ? $_GET['sd'] : '';
+					$endDate 	= (isset($_GET['ed'])) ? $_GET['ed'] : '';
+
+					if (!$startDate == '' && !$endDate == '')
+					{
+						$filter = "WHERE datehour between '" . $startDate . "' and '" . $endDate . "'";
+					}
+				}
+
+				$db->query("SELECT SUM(AlarmCountLow)+SUM(AlarmCountMedium)+SUM(AlarmCountHigh)+SUM(AlarmCountCritical) as NumAlarms FROM almData " . $filter);	
 				$row = $db->fetch();
 				echo '<h1>' . $row['NumAlarms'] . '</h1>';
 				$db->freeStmt();

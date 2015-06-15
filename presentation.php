@@ -3,10 +3,10 @@
 	require_once 'IDatabase.php';
 	require_once 'SQLServerDriver.class.php';
 
-	//$dsn = ['server' => "SP2014P01SN",
-	//		'options' => ["Database" => "GPS"]];
-	$dsn = ['server' => "WIN-01D44SNDUFQ",
+	$dsn = ['server' => "SP2014P01SN",
 			'options' => ["Database" => "GPS"]];
+	//$dsn = ['server' => "WIN-01D44SNDUFQ",
+	//		'options' => ["Database" => "GPS"]];
 
 	$db = new DB\SQLServerDriver($dsn);
 	$db->connect();

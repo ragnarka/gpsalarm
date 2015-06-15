@@ -7,10 +7,10 @@
 	require_once 'Session.class.php';
 
 
-	//$dsn = ['server' => "SP2014P01SN",
-	//		'options' => ["Database" => "GPS"]];
-	$dsn = ['server' => "WIN-01D44SNDUFQ",
+	$dsn = ['server' => "SP2014P01SN",
 			'options' => ["Database" => "GPS"]];
+	//$dsn = ['server' => "WIN-01D44SNDUFQ",
+	//		'options' => ["Database" => "GPS"]];
 
 	$db = new DB\SQLServerDriver($dsn);
 	$db->connect();
@@ -19,6 +19,8 @@
 	$s = new Login\Session();
 
 	$action = isset($_GET['action']) ? $_GET['action'] : '';
+
+
 
 	switch ($action)
 	{
@@ -30,6 +32,17 @@
 
 			break;
 
+	}
+
+
+	if (isset($_GET['f'])) {
+		$startDate 	= (isset($_GET['sd'])) ? $_GET['sd'] : '';
+		$endDate 	= (isset($_GET['ed'])) ? $_GET['ed'] : '';
+
+		if (!$startDate == '' && !$endDate == '')
+		{
+			$filter = "WHERE datehour between '" . $startDate . "' and '" . $endDate . "'";
+		}
 	}
 
 ?>
@@ -48,13 +61,33 @@
 	<script src="assets/highcharts/js/highcharts.js"></script>
 
 	<script>
+		var filterShowing = false;
+		var filter = <?php echo (isset($_GET['f'])) ? '"?f=1&sd=' . $_GET['sd'] . '&ed=' . $_GET['ed'] .'"': '""'; ?>;
 		$(document).ready(function() {
-			$.getJSON("top20.php", function(data) {
+
+			$('#btnFilter').click(function() {
+				if (filterShowing)
+				{
+					$('#filterPanel').addClass('hidden');
+					filterShowing = false;
+				}
+				else
+				{
+					$('#filterPanel').removeClass('hidden');
+					filterShowing = true;
+				}
+			});
+			
+
+			$.getJSON("top20.php" + filter, function(data) {
 				$("#chartContainer").highcharts({
 					chart: {
 						type: "column"
 					},
-					colors: ['#FF8000'],
+					colors: ['#f0ad4e'],
+					credits: {
+						enabled: false
+					},
 					legend : {
 						enabled: false
 					},
@@ -79,6 +112,46 @@
 					series: [{name: 'Alarms', data: data.data}]
 				});
 			});
+
+			$.getJSON("pie.php" + filter, function(data) {
+				$("#chartContainerPie").highcharts({
+					chart: {
+						plotBackgroundColor: null,
+						plotBorderWidth: null,
+						plotShadow: false,
+						margin: [0, 0, 0, 0],
+						height: 150
+					},
+					credits: {
+						enabled: false
+					},
+					colors : ['#5cb83a', '#5bc0de', '#f0ad4e', '#d9534f'],
+					title: {
+						text: ''
+					},
+					tooltip: {
+						pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+					},
+					plotOptions: {
+						pie: {
+							allowPointSelect: true,
+							cursor: 'pointer',
+							dataLabels: {
+								enabled: false,
+								format: '<b>{point.name}</b>: {point.percentage:.1f} %',
+								style: {
+									color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
+								}
+							}
+						}
+					},
+					series: [{
+						type: 'pie',
+						name: data.name,
+						data: data.data
+					}]
+				});
+			});
 		}); 
 	</script>
 
@@ -86,14 +159,19 @@
 
 <body>
 <header>
-	<nav class="navbar navbar-default" style="border-bottom-color: #FF8000; ">
+	<div class="container-fluid" style="background-color: #333; border-bottom-color: #FF8000;">
+		<img src="assets/img/logo.png">
+	</div>
+	<nav class="navbar navbar-default" style="border-top: solid 2px #FF8000;">
 		<div class="container-fluid">
 			<div class="navbar-header">
 				<a class="navbar-brand" href="/projects/gpsalarm">Alarmalizer</a>
 			</div>
 
-			<div class="collapse navbar-collapse" id="bs-navbar-collapse-1">
+			<!--<div class="collapse navbar-collapse" id="bs-navbar-collapse-1">-->
+			<div>
 			<ul class="nav navbar-nav navbar-right">
+				<li><a href="#" id="btnFilter"><span class="glyphicon glyphicon-filter"></span></a></li>
 				<li><a href="presentation.php"><span class="glyphicon glyphicon-facetime-video"></span></a></li>
 				<li class="dropdown">
 					<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button">
@@ -114,7 +192,7 @@
 		</div>
 	</nav>
 </header>
-<div class="well" style="margin-top: 0;">
+<div id="filterPanel" class="well hidden" style="margin-top: 0;">
 	<div class="row">
 		<div class="col-xs-2 col-md-1">
 			<label>Area</label>
@@ -136,6 +214,15 @@
 				<option>Area 4</option>
 			</select>
 		</div>
+		<div class="col-xs-2 col-md-2">
+			<label>Start date</label>
+			<input type="date" name="sd" />
+		</div>
+		<div class="col-xs-2 col-md-2">
+			<label>End date</label>
+			<input type="date" name="sd" />
+		</div>
+		<a href="#" id="btnFilter"><span class="glyphicon glyphicon-remove"></span></a>
 	</div>
 	</div>
 <div class="container-fluid">
@@ -143,6 +230,32 @@
 	<div class="row">
 
 		<?php require_once 'Widget.Col2.tpl.php'; ?>
+
+		<div class="col-xs-12 col-md-2">
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<strong>Alarmfordeling</strong>
+					<!--<div class="dropdown pull-right">
+						<a id="dLabel" data-target="#" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+							<span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
+							<span class="caret"></span>
+						</a>
+						<ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+							<li><a href="#">Innstillinger</a></li>
+							<li class="divider"></li>
+							<?php if ($s->isAutheticated()) : ?>
+							<li><a href="?action=logout">Logg ut</a></li>
+							<?php else : ?>
+							<li><a href="?action=login">Logg inn</a></li>
+							<?php endif; ?>
+						</ul>
+					</div>-->
+				</div>
+				<div class="panel-body">
+					<div id="chartContainerPie"></div>
+				</div>
+			</div>
+		</div>
 
 		<div class="col-xs-12">
 			<?php		
@@ -162,7 +275,11 @@
 				}
 			?>
 
+
+		
+
 		<div id="chartContainer"></div>
+
 
 		<h2>Topp 20</h2>
 		<table class="table table-striped table-bordered table-condensed table-hover">
@@ -176,14 +293,10 @@
 			</tr>
 		</thead>
 		<tbody>
-		<?php
-
-			//$conn = sqlsrv_connect("SP2014P01SN", ["Database" => "GPS"]);//, "UID" => "php", "PWD" => "Goodtech1234"]);
+		<?php		
 
 			$db->query("SELECT TOP 20 tagID, Tagname, AlarmCount, DailyAverage, ROUND(PercentOfTotal*100, 2) AS PercentOfTotal FROM almTag ORDER BY AlarmCount DESC");
-			//$stmt = sqlsrv_query($conn, "SELECT TOP 20 tagID, Tagname, AlarmCount, DailyAverage, ROUND(PercentOfTotal*100, 2) AS PercentOfTotal FROM almTag ORDER BY AlarmCount DESC");
-
-			//while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC))
+		
 			$i = 1;
 			while ($row = $db->fetch())
 			{
@@ -191,8 +304,6 @@
 				$i++;
 			}
 			$db->freeStmt();
-			//sqlsrv_free_stmt($stmt);
-			//sqlsrv_close($conn);
 
 		?>
 		</tbody>
